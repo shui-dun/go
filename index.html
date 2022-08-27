@@ -43,28 +43,52 @@
             chessBoard[i] = new Array(chessLen);
         }
 
+        // 判断坐标是否越界
+        let crossBorder = function(x, y) {
+            return x < 0 || y < 0 || x >= chessLen || y >= chessLen;
+        }
+
         // 落子，在(x,y)坐标处落颜色为color的棋子
         let drop = function (color, x, y) {
             chessBoard[x][y] = new Piece(color, x, y);
-            updateLiberty(x, y);
             attack(x, y);
+            updateLiberty(x, y);
+            // 如果落子后自己没气了，说明不能这么下，回到上一步
+            if (chessBoard[x][y] == undefined) {
+                undo();
+            }
         }
 
-        // 更新与(x,y)相连的相同颜色的棋子簇的气
+        // 悔棋（回到上一步）
+        let undo = function() {
+            // 为了实现悔棋的功能
+            // 需要一个stack存储每一步带来的所有更新
+        }
+
+        // 更新(x,y)所在的棋子簇（相同颜色的连接在一起的棋子们）的气
+        // 如果气为0，就从棋盘中删除该棋子
         let updateLiberty = function (x, y) {
             // 访问过的棋子集合
             let visited = new Set();
             dfsUpdateLiberty(visited, x, y);
         }
 
+        // 搜索(x,y)所在的棋子簇，结果保存在visited集合中
         let dfsUpdateLiberty = function(visited, x, y) {
             
         }
 
-        // 更新受到(x,y)的棋子影响的异色棋子的气
-        // 如果气为0，就从棋盘中删除该棋子
+        // 更新与(x,y)的棋子相连的异色簇棋子的气
+        // 如果气为0，就从棋盘中删除该棋子簇
         let attack = function (x, y) {
-
+            let direction = [[-1, 0], [1, 0], [0, -1], [0, 1]];
+            for (let d of direction) {
+                let newX = x + d[0];
+                let newY = y + d[1];
+                if (!crossBorder(newX, newY) && chessBoard[newX][newY].color != chessBoard[x][y].color) {
+                    updateLiberty(newX, newY);
+                }
+            }
         }
 
         // 根据用户的点击，得到用户输入的棋子位置
