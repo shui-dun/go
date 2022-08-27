@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <title>GO</title>
+</head>
+
+<body>
+    <div>
+
+    </div>
+    <script>
+        const Color = {
+            WHITE: 0,
+            BLACK: 1
+        }
+
+        class Piece {
+            color;
+
+            x;
+
+            y;
+
+            liberty;
+
+            constructor(color, x, y) {
+                this.color = color;
+                this.x = x;
+                this.y = y;
+            }
+        }
+
+
+        let chessLen = 10;
+        let chessBoard = new Array(chessLen);
+        for (let i = 0; i < chessLen; ++i) {
+            chessBoard[i] = new Array(chessLen);
+        }
+
+        let drop = function(color, x, y) {
+            chessBoard[x][y] = new Piece(color, x, y);
+            updateLiberty(x, y);
+            attack(x, y);
+        }
+
+        let updateLiberty = function(x, y) {
+
+        }
+
+        let attack = function(x, y) {
+
+        }
+
+        let getInput = function() {
+
+        }
+
+        let drawChessBoard = function() {
+
+        }
+
+        let currentColor = Color.BLACK;
+        while (true) {
+            drawChessBoard();
+            x, y = getInput();
+            drop(x, y, currentColor);
+            currentColor = (currentColor == Color.BLACK) ? Color.WHITE : Color.BLACK;
+        }
+    </script>
+</body>
+
+</html>
