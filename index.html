@@ -20,7 +20,7 @@
         // 棋子类
         class Piece {
             // 颜色
-            color; 
+            color;
             // x坐标
             x;
             // y坐标
@@ -44,7 +44,7 @@
         }
 
         // 判断坐标是否越界
-        let crossBorder = function(x, y) {
+        let crossBorder = function (x, y) {
             return x < 0 || y < 0 || x >= chessLen || y >= chessLen;
         }
 
@@ -60,7 +60,7 @@
         }
 
         // 悔棋（回到上一步）
-        let undo = function() {
+        let undo = function () {
             // 为了实现悔棋的功能
             // 需要一个stack存储每一步带来的所有更新
         }
@@ -70,12 +70,47 @@
         let updateLiberty = function (x, y) {
             // 访问过的棋子集合
             let visited = new Set();
-            dfsUpdateLiberty(visited, x, y);
+            dfsCluster(visited, x, y);
+            let emptyNeighbor = new Set();
+            for (let axis of visited) {
+                curX = axis[0];
+                curY = axis[1];
+                let direction = [[-1, 0], [1, 0], [0, -1], [0, 1]];
+                for (let d of direction) {
+                    let neighborX = curX + d[0];
+                    let neighborY = curY + d[1];
+                    if (!crossBorder(neighborX, neighborY) && chessBoard[neighborX][neighborY] == undefined) {
+                        emptyNeighbor.add([neighborX][neighborY]);
+                    }
+                }
+            }
+            let liberty = emptyNeighbor.size();
+            if (liberty != 0) {
+                for (let axis of visited) {
+                    chessBoard[axis[0]][axis[1]].liberty = liberty;
+                }
+            } else {
+                for (let axis of visited) {
+                    chessBoard[axis[0]][axis[1]] = undefined;
+                }
+            }
         }
 
         // 搜索(x,y)所在的棋子簇，结果保存在visited集合中
-        let dfsUpdateLiberty = function(visited, x, y) {
-            
+        let dfsCluster = function (visited, x, y) {
+            if (visited.has([x, y])) {
+                return;
+            }
+            visited.add([x, y]);
+            let direction = [[-1, 0], [1, 0], [0, -1], [0, 1]];
+            for (let d of direction) {
+                let newX = x + d[0];
+                let newY = y + d[1];
+                if (!crossBorder(newX, newY) && chessBoard[newX][newY] != undefined
+                    && chessBoard[newX][newY].color == chessBoard[x][y].color) {
+                    dfsCluster(newX, newY);
+                }
+            }
         }
 
         // 更新与(x,y)的棋子相连的异色簇棋子的气
@@ -85,7 +120,8 @@
             for (let d of direction) {
                 let newX = x + d[0];
                 let newY = y + d[1];
-                if (!crossBorder(newX, newY) && chessBoard[newX][newY].color != chessBoard[x][y].color) {
+                if (!crossBorder(newX, newY) && chessBoard[newX][newY] != undefined
+                    && chessBoard[newX][newY].color != chessBoard[x][y].color) {
                     updateLiberty(newX, newY);
                 }
             }
