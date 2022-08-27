@@ -245,7 +245,7 @@
             const mouseX = e.clientX - canvas.offsetLeft;
             const mouseY = e.clientY - canvas.offsetTop;
             [x, y] = nearsetPos(mouseX, mouseY);
-            if (JSON.stringify([x, y]) == JSON.stringify([-1, -1])) {
+            if (crossBorder(x, y) || chessBoard[x][y] != undefined) {
                 return;
             }
             // 落子
