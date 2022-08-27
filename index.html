@@ -11,18 +11,21 @@
 
     </div>
     <script>
+        // 颜色枚举类
         const Color = {
             WHITE: 0,
             BLACK: 1
         }
 
+        // 棋子类
         class Piece {
-            color;
-
+            // 颜色
+            color; 
+            // x坐标
             x;
-
+            // y坐标
             y;
-
+            // 气的数目
             liberty;
 
             constructor(color, x, y) {
@@ -32,40 +35,59 @@
             }
         }
 
-
-        let chessLen = 10;
+        // 围棋棋盘的长宽
+        let chessLen = 19;
+        // 围棋棋盘，初始时全部为空
         let chessBoard = new Array(chessLen);
         for (let i = 0; i < chessLen; ++i) {
             chessBoard[i] = new Array(chessLen);
         }
 
-        let drop = function(color, x, y) {
+        // 落子，在(x,y)坐标处落颜色为color的棋子
+        let drop = function (color, x, y) {
             chessBoard[x][y] = new Piece(color, x, y);
             updateLiberty(x, y);
             attack(x, y);
         }
 
-        let updateLiberty = function(x, y) {
+        // 更新与(x,y)相连的相同颜色的棋子簇的气
+        let updateLiberty = function (x, y) {
+            // 访问过的棋子集合
+            let visited = new Set();
+            dfsUpdateLiberty(visited, x, y);
+        }
+
+        let dfsUpdateLiberty = function(visited, x, y) {
+            
+        }
+
+        // 更新受到(x,y)的棋子影响的异色棋子的气
+        // 如果气为0，就从棋盘中删除该棋子
+        let attack = function (x, y) {
 
         }
 
-        let attack = function(x, y) {
+        // 根据用户的点击，得到用户输入的棋子位置
+        let getInput = function () {
 
         }
 
-        let getInput = function() {
+        // 使用canvas库，绘画棋盘
+        let drawChessBoard = function () {
 
         }
 
-        let drawChessBoard = function() {
-
-        }
-
+        // 主逻辑
+        // 当前应该落子的颜色，黑棋先落子
         let currentColor = Color.BLACK;
         while (true) {
+            // 绘画棋盘
             drawChessBoard();
+            // 得到落子坐标
             x, y = getInput();
+            // 落子
             drop(x, y, currentColor);
+            // 更换当前应该落子的颜色
             currentColor = (currentColor == Color.BLACK) ? Color.WHITE : Color.BLACK;
         }
     </script>
