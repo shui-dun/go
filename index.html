@@ -9,7 +9,10 @@
 <body>
     <div style="text-align: center;">
         <canvas id="board"></canvas>
-        <p id="info">执黑</p>
+        <div>
+            <text id="info"></text>
+            <button id="undobutton">悔棋</button>
+        </div>
     </div>
     <script>
         // 颜色枚举类
@@ -34,6 +37,23 @@
             }
         }
 
+        // 一步棋带来的影响
+        class Operation {
+            // 落的子
+            droppedPiece;
+
+            // 被吃掉的子
+            deadPieces;
+
+            constructor(droppedPiece) {
+                this.droppedPiece = droppedPiece;
+                this.deadPieces = new Array();
+            }
+
+        }
+
+        // 当前应该落子的颜色，黑棋先落子
+        let currentColor = Color.BLACK;
         // 围棋棋盘的边的格数
         let boardGridCnt = 19;
         // 围棋棋盘，初始时全部为空
@@ -41,6 +61,18 @@
         for (let i = 0; i < boardGridCnt; ++i) {
             chessBoard[i] = new Array(boardGridCnt);
         }
+        // 画布
+        let canvas = document.getElementById('board');
+        // 棋子半径
+        let pieceRadius = 16;
+        // 棋盘宽度
+        let boardLength = 2 * boardGridCnt * pieceRadius;
+        canvas.setAttribute("width", boardLength);
+        canvas.setAttribute("height", boardLength);
+        // 画笔
+        let ctx = canvas.getContext('2d');
+        // 栈，用于悔棋
+        let actionStack = new Array();
 
         // 判断坐标是否越界
         let crossBorder = function (x, y) {
@@ -50,6 +82,7 @@
         // 落子，在(x,y)坐标处落颜色为color的棋子
         let drop = function (x, y, color) {
             chessBoard[x][y] = new Piece(color, x, y);
+            actionStack.push(new Operation(chessBoard[x][y]));
             attack(x, y);
             updateLiberty(x, y);
             // 如果落子后自己没气了，说明不能这么下，回到上一步
@@ -60,8 +93,15 @@
 
         // 悔棋（回到上一步）
         let undo = function () {
-            // 为了实现悔棋的功能
-            // 需要一个stack存储每一步带来的所有更新
+            if (actionStack.length == 0) {
+                return;
+            }
+            let operation = actionStack.pop();
+            for (let piece of operation.deadPieces) {
+                chessBoard[piece.x][piece.y] = piece;
+            }
+            chessBoard[operation.droppedPiece.x][operation.droppedPiece.y] = undefined;
+            switchPlayer();
         }
 
         // 更新(x,y)所在的棋子簇（相同颜色的连接在一起的棋子们）的气
@@ -80,7 +120,7 @@
                     let neighborX = curX + d[0];
                     let neighborY = curY + d[1];
                     if (!crossBorder(neighborX, neighborY) && chessBoard[neighborX][neighborY] == undefined) {
-                        emptyNeighbor.add(JSON.stringify([neighborX][neighborY]));
+                        emptyNeighbor.add(JSON.stringify([neighborX, neighborY]));
                     }
                 }
             }
@@ -88,9 +128,15 @@
             if (liberty == 0) {
                 for (let axis of visited) {
                     axis = JSON.parse(axis);
+                    actionStack[actionStack.length - 1].deadPieces.push(chessBoard[axis[0]][axis[1]]);
                     chessBoard[axis[0]][axis[1]] = undefined;
                 }
             }
+        }
+
+        // 更换当前应该落子的颜色
+        let switchPlayer = function () {
+            currentColor = (currentColor == Color.BLACK) ? Color.WHITE : Color.BLACK;
         }
 
         // 搜索(x,y)所在的棋子簇，结果保存在visited集合中
@@ -124,13 +170,6 @@
             }
         }
 
-        let canvas = document.getElementById('board');
-        let pieceRadius = 16;
-        let boardLength = 2 * boardGridCnt * pieceRadius;
-        canvas.setAttribute("width", boardLength);
-        canvas.setAttribute("height", boardLength);
-        let ctx = canvas.getContext('2d');
-
         // 根据用户的点击，得到用户输入的棋子位置
         let nearsetPos = function (mouseX, mouseY) {
             let leftTopPieceX = Math.floor((mouseX / pieceRadius - 1) / 2);
@@ -152,7 +191,7 @@
         }
 
         // 使用canvas库，绘画棋盘
-        let drawChessBoard = function () {
+        let updateScreen = function () {
             ctx.fillStyle = "#d99649";
             ctx.fillRect(0, 0, canvas.width, canvas.height);
             // 开始一个新的绘制路径
@@ -189,15 +228,19 @@
                     ctx.closePath();
                 }
             }
+            // 打印信息
+            if (currentColor == Color.BLACK) {
+                document.getElementById("info").innerHTML = '执黑&nbsp;&nbsp;';
+            } else {
+                document.getElementById("info").innerHTML = '执白&nbsp;&nbsp;';
+            }
         }
 
-        // 当前应该落子的颜色，黑棋先落子
-        let currentColor = Color.BLACK;
+
         // 绘画棋盘
-        drawChessBoard();
+        updateScreen();
 
         // 监听点击画布事件
-
         canvas.addEventListener('click', (e) => {
             const mouseX = e.clientX - canvas.offsetLeft;
             const mouseY = e.clientY - canvas.offsetTop;
@@ -208,15 +251,16 @@
             // 落子
             drop(x, y, currentColor);
             // 更换当前应该落子的颜色
-            currentColor = (currentColor == Color.BLACK) ? Color.WHITE : Color.BLACK;
-            // 绘画棋盘
-            drawChessBoard();
-            // 打印信息
-            if (currentColor == Color.BLACK) {
-                document.getElementById("info").innerHTML = '执黑';
-            } else {
-                document.getElementById("info").innerHTML = '执白';
-            }
+            switchPlayer();
+            // 绘画棋盘等
+            updateScreen();
+        });
+
+        // 监听悔棋事件
+        document.getElementById("undobutton").addEventListener('click', (e) => {
+            undo();
+            // 绘画棋盘等
+            updateScreen();
         });
     </script>
 </body>
