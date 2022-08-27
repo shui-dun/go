@@ -7,7 +7,7 @@
 </head>
 
 <body>
-    <div>
+    <div style="text-align: center;">
         <canvas id="board"></canvas>
     </div>
     <script>
@@ -25,8 +25,6 @@
             x;
             // y坐标
             y;
-            // 气的数目
-            liberty;
 
             constructor(color, x, y) {
                 this.color = color;
@@ -49,7 +47,7 @@
         }
 
         // 落子，在(x,y)坐标处落颜色为color的棋子
-        let drop = function (color, x, y) {
+        let drop = function (x, y, color) {
             chessBoard[x][y] = new Piece(color, x, y);
             attack(x, y);
             updateLiberty(x, y);
@@ -73,6 +71,7 @@
             dfsCluster(visited, x, y);
             let emptyNeighbor = new Set();
             for (let axis of visited) {
+                axis = JSON.parse(axis);
                 curX = axis[0];
                 curY = axis[1];
                 let direction = [[-1, 0], [1, 0], [0, -1], [0, 1]];
@@ -80,17 +79,14 @@
                     let neighborX = curX + d[0];
                     let neighborY = curY + d[1];
                     if (!crossBorder(neighborX, neighborY) && chessBoard[neighborX][neighborY] == undefined) {
-                        emptyNeighbor.add([neighborX][neighborY]);
+                        emptyNeighbor.add(JSON.stringify([neighborX][neighborY]));
                     }
                 }
             }
-            let liberty = emptyNeighbor.size();
-            if (liberty != 0) {
+            let liberty = emptyNeighbor.size;
+            if (liberty == 0) {
                 for (let axis of visited) {
-                    chessBoard[axis[0]][axis[1]].liberty = liberty;
-                }
-            } else {
-                for (let axis of visited) {
+                    axis = JSON.parse(axis);
                     chessBoard[axis[0]][axis[1]] = undefined;
                 }
             }
@@ -98,17 +94,17 @@
 
         // 搜索(x,y)所在的棋子簇，结果保存在visited集合中
         let dfsCluster = function (visited, x, y) {
-            if (visited.has([x, y])) {
+            if (visited.has(JSON.stringify([x, y]))) {
                 return;
             }
-            visited.add([x, y]);
+            visited.add(JSON.stringify([x, y]));
             let direction = [[-1, 0], [1, 0], [0, -1], [0, 1]];
             for (let d of direction) {
                 let newX = x + d[0];
                 let newY = y + d[1];
                 if (!crossBorder(newX, newY) && chessBoard[newX][newY] != undefined
                     && chessBoard[newX][newY].color == chessBoard[x][y].color) {
-                    dfsCluster(newX, newY);
+                    dfsCluster(visited, newX, newY);
                 }
             }
         }
@@ -135,8 +131,23 @@
         let ctx = canvas.getContext('2d');
 
         // 根据用户的点击，得到用户输入的棋子位置
-        let getInput = function () {
-
+        let nearsetPos = function (mouseX, mouseY) {
+            let leftTopPieceX = Math.floor((mouseX / pieceRadius - 1) / 2);
+            let leftTopPieceY = Math.floor((mouseY / pieceRadius - 1) / 2);
+            let offsets = [[0, 0], [0, 1], [1, 0], [1, 1]];
+            for (let offset of offsets) {
+                let newX = leftTopPieceX + offset[0];
+                let newY = leftTopPieceY + offset[1];
+                if (crossBorder(newX, newY)) {
+                    continue;
+                }
+                let pixelX = (2 * newX + 1) * pieceRadius;
+                let pixelY = (2 * newY + 1) * pieceRadius;
+                if ((pixelX - mouseX) ** 2 + (pixelY - mouseY) ** 2 < pieceRadius ** 2) {
+                    return [newX, newY];
+                }
+            }
+            return [-1, -1];
         }
 
         // 使用canvas库，绘画棋盘
@@ -179,19 +190,27 @@
             }
         }
 
-        // 主逻辑
         // 当前应该落子的颜色，黑棋先落子
         let currentColor = Color.BLACK;
-        while (true) {
-            // 绘画棋盘
-            drawChessBoard();
-            // 得到落子坐标
-            x, y = getInput();
+        // 绘画棋盘
+        drawChessBoard();
+
+        // 监听点击画布事件
+
+        canvas.addEventListener('click', (e) => {
+            const mouseX = e.clientX - canvas.offsetLeft;
+            const mouseY = e.clientY - canvas.offsetTop;
+            [x, y] = nearsetPos(mouseX, mouseY);
+            if (JSON.stringify([x, y]) == JSON.stringify([-1, -1])) {
+                return;
+            }
             // 落子
             drop(x, y, currentColor);
             // 更换当前应该落子的颜色
             currentColor = (currentColor == Color.BLACK) ? Color.WHITE : Color.BLACK;
-        }
+            // 绘画棋盘
+            drawChessBoard();
+        });
     </script>
 </body>
 
