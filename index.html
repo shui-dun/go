@@ -9,6 +9,7 @@
 <body>
     <div style="text-align: center;">
         <canvas id="board"></canvas>
+        <p id="info">执黑</p>
     </div>
     <script>
         // 颜色枚举类
@@ -152,7 +153,7 @@
 
         // 使用canvas库，绘画棋盘
         let drawChessBoard = function () {
-            ctx.fillStyle = "#FAF0E6";
+            ctx.fillStyle = "#d99649";
             ctx.fillRect(0, 0, canvas.width, canvas.height);
             // 开始一个新的绘制路径
             ctx.beginPath();
@@ -210,6 +211,12 @@
             currentColor = (currentColor == Color.BLACK) ? Color.WHITE : Color.BLACK;
             // 绘画棋盘
             drawChessBoard();
+            // 打印信息
+            if (currentColor == Color.BLACK) {
+                document.getElementById("info").innerHTML = '执黑';
+            } else {
+                document.getElementById("info").innerHTML = '执白';
+            }
         });
     </script>
 </body>
