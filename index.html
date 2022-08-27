@@ -3,12 +3,12 @@
 
 <head>
     <meta charset="utf-8">
-    <title>GO</title>
+    <title>Let's Play GO!</title>
 </head>
 
 <body>
     <div>
-
+        <canvas id="board"></canvas>
     </div>
     <script>
         // 颜色枚举类
@@ -35,17 +35,17 @@
             }
         }
 
-        // 围棋棋盘的长宽
-        let chessLen = 19;
+        // 围棋棋盘的边的格数
+        let boardGridCnt = 19;
         // 围棋棋盘，初始时全部为空
-        let chessBoard = new Array(chessLen);
-        for (let i = 0; i < chessLen; ++i) {
-            chessBoard[i] = new Array(chessLen);
+        let chessBoard = new Array(boardGridCnt);
+        for (let i = 0; i < boardGridCnt; ++i) {
+            chessBoard[i] = new Array(boardGridCnt);
         }
 
         // 判断坐标是否越界
         let crossBorder = function (x, y) {
-            return x < 0 || y < 0 || x >= chessLen || y >= chessLen;
+            return x < 0 || y < 0 || x >= boardGridCnt || y >= boardGridCnt;
         }
 
         // 落子，在(x,y)坐标处落颜色为color的棋子
@@ -127,6 +127,13 @@
             }
         }
 
+        let canvas = document.getElementById('board');
+        let pieceRadius = 16;
+        let boardLength = 2 * boardGridCnt * pieceRadius;
+        canvas.setAttribute("width", boardLength);
+        canvas.setAttribute("height", boardLength);
+        let ctx = canvas.getContext('2d');
+
         // 根据用户的点击，得到用户输入的棋子位置
         let getInput = function () {
 
@@ -134,7 +141,42 @@
 
         // 使用canvas库，绘画棋盘
         let drawChessBoard = function () {
-
+            ctx.fillStyle = "#FAF0E6";
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            // 开始一个新的绘制路径
+            ctx.beginPath();
+            // 绘制竖线
+            for (let i = 0; i < boardGridCnt; ++i) {
+                ctx.moveTo((2 * i + 1) * pieceRadius, pieceRadius);
+                ctx.lineTo((2 * i + 1) * pieceRadius, boardLength - pieceRadius);
+            }
+            // 绘制横线
+            for (let i = 0; i < boardGridCnt; ++i) {
+                ctx.moveTo(pieceRadius, (2 * i + 1) * pieceRadius);
+                ctx.lineTo(boardLength - pieceRadius, (2 * i + 1) * pieceRadius);
+            }
+            // 沿着坐标点顺序的路径绘制直线
+            ctx.stroke();
+            // 关闭当前的绘制路径
+            ctx.closePath();
+            // 绘制棋子
+            for (let x = 0; x < boardGridCnt; x++) {
+                for (let y = 0; y < boardGridCnt; y++) {
+                    if (chessBoard[x][y] == undefined) {
+                        continue;
+                    }
+                    ctx.beginPath();
+                    ctx.arc((2 * x + 1) * pieceRadius, (2 * y + 1) * pieceRadius,
+                        pieceRadius, 0, Math.PI * 2, true);
+                    if (chessBoard[x][y].color == Color.BLACK) {
+                        ctx.fillStyle = "#000000";
+                    } else {
+                        ctx.fillStyle = "#ffffff";
+                    }
+                    ctx.fill();
+                    ctx.closePath();
+                }
+            }
         }
 
         // 主逻辑
